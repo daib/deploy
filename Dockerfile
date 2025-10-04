@@ -8,13 +8,14 @@ RUN mvn verify --fail-never
 RUN sed -i'' -e "s|localhost|\$\{AUTHEN_SERVER\}|g" src/main/resources/application.properties
 RUN mvn clean -Dmaven.test.skip=true install
 
-FROM golang:1.24 as go_build
+FROM golang:1.24 AS go_build
 ENV HOME=/usr/src/app
+RUN mkdir -p $HOME
 WORKDIR $HOME
 COPY go-modules $HOME
 RUN pwd
 RUN go mod tidy
-RUN go build -v -o vocab /apps/vocab-builder/vocab-quiz-generator/cmd.go
+RUN go build -v -o vocab ./apps/vocab-builder/vocab-quiz-generator/cmd/main.go
 
 FROM ubuntu
 
