@@ -3,7 +3,6 @@ ENV HOME=/usr/src/app
 RUN mkdir -p $HOME
 WORKDIR $HOME
 ADD java-modules/modules/callgate $HOME
-#ADD pom.xml $HOME
 RUN mvn verify --fail-never
 RUN sed -i'' -e "s|localhost|\$\{AUTHEN_SERVER\}|g" src/main/resources/application.properties
 RUN mvn clean -Dmaven.test.skip=true install
@@ -21,10 +20,25 @@ FROM ubuntu
 
 RUN apt update
 RUN apt install openjdk-21-jdk openjdk-21-jre -y
+RUN apt install wget unzip vim -y
 
-ENV HOME=/usr/src/app
+RUN groupadd -r langrobogroup && useradd -r -g langrobogroup langrobo
 
-COPY --from=java_build $HOME/target/Callgate-0.0.1-SNAPSHOT.jar /usr/app/Callgate-0.0.1-SNAPSHOT.jar
-COPY --from=go_build $HOME/vocab /usr/app/vocab
+USER langrobo
+
+ENV BUILD_HOME=/usr/src/app
+ENV HOME=/home/langrobo
+ENV INSTALL_HOME=$HOME/app
+
+COPY --chown=langrobo:langrobogroup --from=java_build $BUILD_HOME/target/Callgate-0.0.1-SNAPSHOT.jar $INSTALL_HOME/Callgate-0.0.1-SNAPSHOT.jar
+COPY --chown=langrobo:langrobogroup --from=go_build $BUILD_HOME/vocab $INSTALL_HOME/vocab
+#RUN mkdir -p $INSTALL_HOME/resources
+COPY --chown=langrobo:langrobogroup java-modules/modules/auth-server/src/main/resources/auth-server-realm.json $INSTALL_HOME/resources/
+#RUN sed -i'' -e "s|localhost|langrobo.com|g" resources/auth-server-realm.json
+COPY --chown=langrobo:langrobogroup vocab_quiz.csv $INSTALL_HOME/resources
+#RUN wget -P $INSTALL_HOME "https://github.com/keycloak/keycloak/releases/download/26.4.0/keycloak-26.4.0.zip"
+#RUN unzip keycloak-26.4.0.zip
+COPY --chown=langrobo:langrobogroup keycloak-26.4.0 $INSTALL_HOME/keycloak
+COPY --chown=langrobo:langrobogroup start $INSTALL_HOME/
 EXPOSE 8080 8080
-ENTRYPOINT ["java","-jar","/usr/app/Callgate-0.0.1-SNAPSHOT.jar"]
+CMD ["/home/langrobo/app/start"]
