@@ -20,25 +20,29 @@ FROM ubuntu
 
 RUN apt update
 RUN apt install openjdk-21-jdk openjdk-21-jre -y
-RUN apt install wget unzip vim -y
+RUN apt install wget unzip vim iputils-ping -y
 
-RUN groupadd -r langrobogroup && useradd -r -g langrobogroup langrobo
-
-USER langrobo
+#RUN groupadd -r langrobogroup && useradd -r -g langrobogroup langrobo
+#USER langrobo
 
 ENV BUILD_HOME=/usr/src/app
-ENV HOME=/home/langrobo
+ENV HOME=/home/root
 ENV INSTALL_HOME=$HOME/app
 
-COPY --chown=langrobo:langrobogroup --from=java_build $BUILD_HOME/target/Callgate-0.0.1-SNAPSHOT.jar $INSTALL_HOME/Callgate-0.0.1-SNAPSHOT.jar
-COPY --chown=langrobo:langrobogroup --from=go_build $BUILD_HOME/vocab $INSTALL_HOME/vocab
-#RUN mkdir -p $INSTALL_HOME/resources
-COPY --chown=langrobo:langrobogroup java-modules/modules/auth-server/src/main/resources/auth-server-realm.json $INSTALL_HOME/resources/
+
+
+COPY --from=java_build $BUILD_HOME/target/Callgate-0.0.1-SNAPSHOT.jar $INSTALL_HOME/Callgate-0.0.1-SNAPSHOT.jar
+COPY --from=go_build $BUILD_HOME/vocab $INSTALL_HOME/vocab
+COPY java-modules/modules/auth-server/src/main/resources/auth-server-realm.json $INSTALL_HOME/resources/
 #RUN sed -i'' -e "s|localhost|langrobo.com|g" resources/auth-server-realm.json
-COPY --chown=langrobo:langrobogroup vocab_quiz.csv $INSTALL_HOME/resources
+COPY vocab_quiz.csv $INSTALL_HOME/resources
 #RUN wget -P $INSTALL_HOME "https://github.com/keycloak/keycloak/releases/download/26.4.0/keycloak-26.4.0.zip"
 #RUN unzip keycloak-26.4.0.zip
-COPY --chown=langrobo:langrobogroup keycloak-26.4.0 $INSTALL_HOME/keycloak
-COPY --chown=langrobo:langrobogroup start $INSTALL_HOME/
-EXPOSE 8080 8080
+COPY keycloak-26.4.0 $INSTALL_HOME/keycloak
+COPY conf/* $INSTALL_HOME/keycloak/conf
+COPY start $INSTALL_HOME/
+
+# add current (including keycloak) certifiate to trustStore so that spingboot server can connect to keycloak
+RUN export JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:bin/java::")
+RUN keytool -import -alias langrobo -keystore /usr/lib/jvm/java-21-openjdk-amd64/lib/security/cacerts -file $INSTALL_HOME/keycloak/conf/langrobo_com.crt -storepass changeit -noprompt
 CMD ["/home/langrobo/app/start"]
