@@ -1,4 +1,4 @@
-FROM jelastic/maven:3.9.5-openjdk-21 AS java_build 
+FROM maven:3.9.9-eclipse-temurin-21 AS java_build
 ENV HOME=/usr/src/app
 RUN mkdir -p $HOME
 WORKDIR $HOME
@@ -38,11 +38,12 @@ COPY java-modules/modules/auth-server/src/main/resources/auth-server-realm.json 
 COPY vocab_quiz.csv $INSTALL_HOME/resources
 #RUN wget -P $INSTALL_HOME "https://github.com/keycloak/keycloak/releases/download/26.4.0/keycloak-26.4.0.zip"
 #RUN unzip keycloak-26.4.0.zip
-COPY keycloak-26.4.0 $INSTALL_HOME/keycloak
+COPY keycloak-26.3.3 $INSTALL_HOME/keycloak
 COPY conf/* $INSTALL_HOME/keycloak/conf
 COPY start $INSTALL_HOME/
 
+ARG TARGETARCH
 # add current (including keycloak) certifiate to trustStore so that spingboot server can connect to keycloak
 RUN export JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:bin/java::")
-RUN keytool -import -alias langrobo -keystore /usr/lib/jvm/java-21-openjdk-amd64/lib/security/cacerts -file $INSTALL_HOME/keycloak/conf/langrobo_com.crt -storepass changeit -noprompt
+RUN keytool -import -alias langrobo -keystore /usr/lib/jvm/java-21-openjdk-$TARGETARCH/lib/security/cacerts -file $INSTALL_HOME/keycloak/conf/langrobo_com.crt -storepass changeit -noprompt
 CMD ["/home/langrobo/app/start"]
