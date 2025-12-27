@@ -1,8 +1,8 @@
 #!/bin/bash
 KC_PATH=$HOME/app/keycloak
-${KC_PATH}/bin/kc.sh import --file resources/auth-server-realm.json
+#${KC_PATH}/bin/kc.sh import --file resources/auth-server-realm.json
 ${KC_PATH}/bin/kc.sh start --https-key-store-password=khongco --bootstrap-admin-username admin --bootstrap-admin-password pass --http-relative-path /auth &
-$HOME/app/vocab --httpPort 8081 --quizPath resources/vocab_quiz.csv &
+$HOME/app/vocab --dataPath $HOME/data --httpPort 8081 --quizPath $HOME/app/resources/vocab_quiz.csv &
 sleep 40s
 java -jar $HOME/app/Callgate-0.0.1-SNAPSHOT.jar
 
