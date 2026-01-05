@@ -40,6 +40,8 @@ COPY vocab_quiz.csv $INSTALL_HOME/resources
 #RUN unzip keycloak-26.4.0.zip
 COPY keycloak-26.3.3 $INSTALL_HOME/keycloak
 COPY conf/* $INSTALL_HOME/keycloak/conf
+ARG CLIENT_SECRET
+ENV GOOGLE_CLIENT_SECRET=$CLIENT_SECRET
 RUN $INSTALL_HOME/keycloak/bin/kc.sh import --file $INSTALL_HOME/resources/auth-server-realm.json
 COPY scripts $INSTALL_HOME/scripts
 
