@@ -1,0 +1,3 @@
+#!/bin/bash
+$HOME/app/vocab --dataPath $HOME/data --httpPort 8081 --quizPath $HOME/app/resources/vocab_quiz.csv
+

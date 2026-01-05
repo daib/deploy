@@ -1,0 +1,4 @@
+#!/bin/bash
+export KC_PATH=$HOME/app/keycloak
+${KC_PATH}/bin/kc.sh start --https-key-store-password=khongco --bootstrap-admin-username admin --bootstrap-admin-password pass --http-relative-path /auth
+
